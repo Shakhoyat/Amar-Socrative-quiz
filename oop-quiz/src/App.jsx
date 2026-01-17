@@ -31,6 +31,7 @@ function App() {
   const [timeLeft, setTimeLeft] = useState(null);
   const [timerActive, setTimerActive] = useState(false);
   const [reviewFilter, setReviewFilter] = useState('all');
+  const [shuffledOptions, setShuffledOptions] = useState({});
 
   const categories = useMemo(() => {
     const cats = [...new Set(questions.map(q => q.cat))];
@@ -54,10 +55,26 @@ function App() {
     return shuffled;
   };
 
+  const shuffleQuestionOptions = (question) => {
+    const indices = question.opts.map((_, idx) => idx);
+    const shuffledIndices = shuffleArray(indices);
+    const shuffledOpts = shuffledIndices.map(idx => question.opts[idx]);
+    const newCorrectIndex = shuffledIndices.indexOf(question.ans);
+    
+    return {
+      ...question,
+      opts: shuffledOpts,
+      ans: newCorrectIndex,
+      originalAns: question.ans,
+      optionMapping: shuffledIndices
+    };
+  };
+
   const startQuiz = (size, timed = false) => {
     const shuffled = shuffleArray(filteredQuestions);
     const selected = shuffled.slice(0, Math.min(size, shuffled.length));
-    setQuizQuestions(selected);
+    const shuffledWithOptions = selected.map(q => shuffleQuestionOptions(q));
+    setQuizQuestions(shuffledWithOptions);
     setQuizSize(size);
     setCurrentQ(0);
     setSelected(null);
